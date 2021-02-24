@@ -1,5 +1,12 @@
 This repo is for the **oBundle** assessment test 
+website : https://machado-inc.mybigcommerce.com/
+preview code: fvrpviisbh
 
+files that is used to write code
+
+https://github.com/richardmachado/bigcommerce-oBundle/blob/master/templates/pages/category.html
+https://github.com/richardmachado/bigcommerce-oBundle/blob/master/templates/components/products/card.html
+https://github.com/richardmachado/bigcommerce-oBundle/blob/master/assets/scss/components/citadel/cards/_cards.scss
 
 The goal of this project was to familiarize myself with the Stencil CLI. I spent my first day installing the CLI and getting it running locally. The rest of the day was spent studying the code, getting familiar with the code and figuring out where I would be writing the code for the features that were requested. 
 
@@ -21,6 +28,7 @@ Bonus Feature
 Create a banner that displays the user's name , email address and phone# 
 
 The code checks if there's a user logged in, otherwise there is no banner. When a user is logged in, the banner states their name,  email address, and phone number.
+
 
 
 
