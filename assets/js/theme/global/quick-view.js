@@ -33,6 +33,8 @@ export default function (context) {
             modal.setupFocusableElements(modalTypes.QUICK_VIEW);
 
             return new ProductDetails(modal.$content.find('.quickView'), context);
+            
         });
     });
 }
+

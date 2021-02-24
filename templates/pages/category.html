@@ -5,6 +5,7 @@ category:
         limit: {{theme_settings.categorypage_products_per_page}}
 ---
 {{inject "categoryProductsPerPage" theme_settings.categorypage_products_per_page}}
+{{inject "categoryProducts" category.products}}
 {{inject "categoryId" category.id}}
 {{#partial "head"}}
     {{#if pagination.category.previous}}
@@ -26,10 +27,84 @@ category:
         class="category-header-image"
     }}
 {{/if}}
+{{#if customer}}
+<div id="customerBanner">
+  <div class="banners" data-banner-location="top">
+      <div class="banner" data-event-type="promotion">
+          <div data-event-type="promotion-click">Welcome back, {{customer.name}}</div>
+		  <span> Email - {{customer.email}}, Phone - {{customer.phone}} </p>
+      </div>
+  </div>
+</div>
+{{/if}}
+
+<br />
 {{#unless theme_settings.hide_category_page_heading }}
     <h1 class="page-heading">{{category.name}}</h1>
     {{{region name="category_below_header"}}}
 {{/unless}}
+{{{category.description}}}
+<div class="page">
+    {{#if category.faceted_search_enabled}}
+        <aside class="page-sidebar" id="faceted-search-container">
+            {{> components/category/sidebar}}
+        </aside>
+    {{else if category.subcategories}}
+        <aside class="page-sidebar" id="faceted-search-container">
+            {{> components/category/sidebar}}
+        </aside>
+    {{else if category.shop_by_price}}
+        {{#if theme_settings.shop_by_price_visibility}}
+             <aside class="page-sidebar" id="faceted-search-container">
+                {{> components/category/sidebar}}
+            </aside>
+        {{/if}}
+    {{/if}}
+
+
+<div class="add-remove-cart-buttons">
+	<div class="add-to-cart">
+		<a href="#addalltocartmodal" data-reveal-id="addalltocartmodal" class="add-all-to-cart button button--primary" onclick="postCartAction(112, `/api/storefront/carts/`, 'add')">Add All To Cart</a>
+	</div>
+<div id="addalltocartmodal" class="modal" data-reveal="" tabindex="0" role="dialog">
+         <div class="modal-header">
+             <h2 class="modal-header-title">Added All To Cart</h2>
+         </div>
+         <div class="modal-body">
+             <h4>Success!</h4>
+             <p>
+                 All products in this category have been added to the cart.
+             </p>
+         </div>
+         <div class="modal-footer">
+             <a class="button button--small button--primary goToCartBtn" href="#">
+                Window will automatically close in a couple of seconds
+             </a>
+         </div>
+       </div>
+
+
+	<div class="remove-from-cart">
+		<a href="#removeallfromcartmodal" data-reveal-id="removeallfromcartmodal" class="remove-all-from-cart button button--primary" onclick="postCartAction(null, `/api/storefront/carts/`, 'remove')">Remove All Items</a>
+	</div>     
+</div>
+<div id="removeallfromcartmodal" class="modal" data-reveal="" tabindex="0" role="dialog">
+         <div class="modal-header">
+             <h2 class="modal-header-title">Remove All From Cart</h2>
+         </div>
+         <div class="modal-body">
+             <h4>Success!</h4>
+             <p>
+                 All products in your cart have been removed.
+             </p>
+         </div>
+         <div class="modal-footer">
+             <a class="button button--small button--primary goToCartBtn" href="#">
+                Window will automatically close in a couple of seconds
+             </a>
+         </div>
+       </div>
+
 {{{category.description}}}
 <div class="page">
     {{#if category.faceted_search_enabled}}
@@ -53,6 +128,91 @@ category:
         {{{region name="category_below_content"}}}
     </main>
 </div>
+
+<script>
+	const removeBtn = document.querySelector('.remove-from-cart');
+	postCartAction(null, `/api/storefront/carts/`, '');
+
+	function postCartAction(productId, url, action) {
+		fetch(url, {
+			credentials: 'include'
+		}).then(function(response) {
+			return response.json();
+		}).then(function(cartData) {
+			console.log('JSON', cartData);
+			if(cartData.length == 0)
+				removeBtn.style.display = 'none';
+			else
+				removeBtn.style.display = 'block';
+			if(action == 'add') {
+				addAllToCart(productId, url, cartData);
+			} else if(action == 'remove') {
+				removeAllFromCart(url, cartData, action);
+			};
+		});
+	}
+
+	function addAllToCart(productId, url, cartData) {
+		if(cartData.length == 0) {
+			createCart(url, {
+				"lineItems": [{
+					"quantity": 1,
+					"productId": productId
+				}]
+			})
+			.then(data => console.log(JSON.stringify(data)))
+			.catch(error => console.error(error));
+		} else {
+			addCartItem(url, cartData[0].id, {
+				"lineItems": [{
+					"quantity": 1,
+					"productId": productId
+				}]
+			})
+			.then(cartData => console.log(JSON.stringify(cartData)))
+			.catch(error => console.error(error));
+		}
+	}
+
+	function removeAllFromCart(url, cartData) {
+		for(let i = 0;i < cartData[0].lineItems.physicalItems.length;i ++)  {
+			deleteCartItem(url, cartData[0].id, cartData[0].lineItems.physicalItems[i].id)
+			.then(data => {})
+			.catch(error => console.log(error));
+		}
+	}
+
+	function createCart(url, cartItems) {
+   return fetch(url, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {
+			"Content-Type": "application/json"},
+		body: JSON.stringify(cartItems),
+   })
+   .then(response => response.json());
+ 	};
+	function addCartItem(url, cartId, cartItems) {
+     	return fetch(url + cartId + '/items', {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json"},
+			body: JSON.stringify(cartItems),
+		})
+		.then(response => response.json());
+	};
+	function deleteCartItem(url, cartId, itemId) {
+   		return fetch(url + cartId + '/items/' + itemId, {
+			method: "DELETE",
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",}
+		})
+		.then(response => response.json());
+	};
+
+</script>
 
 {{/partial}}
 {{> layout/base}}

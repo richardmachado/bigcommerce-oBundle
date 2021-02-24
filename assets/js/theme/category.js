@@ -16,7 +16,8 @@ export default class Category extends CatalogPage {
             'aria-live': ariaLiveStatus,
         });
     }
-
+    
+ 
     makeShopByPriceFilterAccessible() {
         if (!$('[data-shop-by-price]').length) return;
 
@@ -102,3 +103,4 @@ export default class Category extends CatalogPage {
         });
     }
 }
+
